@@ -1,0 +1,1038 @@
+/* =================================================
+
+App Name:  Spinova URL Rotator.
+Author: Codevion
+Version: 1.3
+Design and Developed by: Codevion
+https://codevion.com
+
+=================================================== */
+
+:root {
+  --border-primary: #DFD7CA;
+  --border-secondary: #DFD7CA;
+  --primary-font-color: #6366F1;
+  --secondary-font-color: #495057;
+  --error-color: #d9534f;
+  --background-primary: #F3F4F6; 
+  --background-secondary: #ffffff;
+  --background-tertiary: #ffffff;
+  --background-quaternary: #DFD7CA;
+  --box-shadow: none; 
+  --box-shadow-two: none; 
+  --box-shadow-three: none;
+  --button-secondary: #495057; 
+  --button-tertiary: #fe5461; 
+  --button-hover-primary: #757c8c; 
+  --button-hover-secondary: #266aff; 
+  --table-hover: #efefef;
+}
+
+
+[data-theme="dark"] {
+  --border-primary: rgba(0, 0, 0, 0.3);
+  --border-secondary: none;
+  --primary-font-color: #F43F5E;
+  --secondary-font-color: #8899a6;
+  --error-color: #d9534f;
+  --background-primary: #15202B; 
+  --background-secondary: #192734;
+  --background-tertiary: #15202B;
+  --background-quaternary: #8899a6;
+  --box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+  --box-shadow-two: 0 -0.25rem 0.25rem rgba(0,0,0,0.075);
+  --box-shadow-three: 0.125rem 0rem 0.25rem rgba(0,0,0,0.075);
+  --button-secondary: #495057; 
+  --button-tertiary: #495057; 
+  --button-hover-primary: #757c8c;
+  --button-hover-secondary: #757c8c;
+  --table-hover: #15202B;
+} 
+
+
+body#login-page {
+  background-color: var(--background-primary);
+}
+
+body#not-found-page {
+  background-color: #95c2de;
+}
+
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+     display: none; 
+    -webkit-appearance: none;
+    margin: 0; 
+}
+
+input[type=number] {
+    -moz-appearance:textfield;
+}
+
+
+.hidden{
+    display: none;
+}
+
+/*----------------------------*/
+/*SCROLLBAR */
+/*----------------------------*/
+
+/* width */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px; 
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  /*box-shadow: inset 0 0 5px black; */
+  border-radius: 10px;
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background-color: var(--secondary-font-color);
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--secondary-font-color);
+}
+
+/*-----------------------*/
+/*SIDEBAR*/
+/*-----------------------*/
+
+
+
+.sidebar .sidebar-inner ion-icon[name="link"] {
+  -webkit-transform: rotate(-45deg);
+      -ms-transform: rotate(-45deg);
+          transform: rotate(-45deg);
+}
+
+.sidebar .sidebar-inner > li > a:before,
+.sidebar-footer #footer-links li a:before {
+    position: absolute;
+    content: '';
+    right: 0;
+    top: 0;
+    width: .19rem;
+    height: 100%;
+    background: var(--primary-font-color);
+    -webkit-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+    opacity: 0;
+}
+
+.sidebar-footer #footer-links li a:before{
+    width: .22rem;
+}
+
+.sidebar .nav > li > a:hover:before,
+.sidebar-footer #footer-links li a:hover:before {
+    opacity: 1;
+}
+
+.sidebar-footer #footer-links li a {
+    position: relative;
+    z-index: 10;
+    padding: 1.25rem 1.56rem;
+    line-height: 19px;
+    text-decoration: none;
+    font-weight: 500;
+    white-space: nowrap;
+    display: -webkit-box !important;
+    display: -ms-flexbox !important;
+    display: flex !important;
+    -webkit-box-flex: 1;
+        -ms-flex-positive: 1;
+            flex-grow: 1;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    color: var(--primary-font-color);
+}
+
+.sidebar-minified .left-sidebar .nav #footer-links > li > a > span {
+    opacity: 0;
+}
+
+
+.sidebar-minified-out #footer-links li a span {
+    -webkit-transition: opacity 0.3s ease-in-out 0.3s;
+    -o-transition: opacity 0.3s ease-in-out 0.3s;
+    transition: opacity 0.3s ease-in-out 0.3s;
+    visibility: visible;
+    opacity: 1;
+}
+
+.sidebar-footer #footer-links li a ion-icon[name="settings-outline"], 
+.sidebar-footer #footer-links li a ion-icon[name="power-outline"] {
+    --ionicon-stroke-width: 48px;
+}
+
+
+
+
+
+
+
+
+/*-----------------------*/
+/*CONTENT TABLE*/
+/*-----------------------*/
+
+main .content-container,
+main .no-data-container {
+    border: 1px solid var(--border-primary);
+    background: var(--background-secondary);
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+}
+
+main .no-data-container {
+  padding: 50px;
+  width: 70%;
+  margin: 6rem auto;
+}
+
+.vertically-center{
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+main .table thead th {
+    border-top: 0;
+    border-bottom-width: 1px;
+    font-weight: 400;
+    text-transform: uppercase;
+    font-size: 0.825em;
+    color: var(--secondary-font-color);
+    vertical-align: bottom;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+main .table th, 
+main .table td {
+    border-top: none;
+    padding: 0.85rem 1.2rem;
+}
+
+main .table tr td {
+    font-size: .9em;
+    padding: 1.5rem 1.2rem;
+    color: var(--secondary-font-color);
+}
+
+main .table tr td:first-child,
+main table tr td:nth-child(2),
+main table tr td:nth-child(3),
+main table tr td:nth-child(4),
+main table tr td:nth-child(5),
+main table tr td:nth-child(6) {
+  overflow: hidden;
+  overflow-wrap: break-word;
+}
+
+main .table tr td:first-child {
+    width: 300px !important;
+    min-width: 300px !important;
+    word-break: break-all;
+}
+
+main table tr td:nth-child(2){
+    width: 102px !important;
+    min-width: 102px !important;
+}
+
+main table tr td:nth-child(3){
+    width: 300px !important;
+    min-width: 300px !important;
+    word-break: break-all;
+}
+
+main table tr td hr{
+    border-top: 1px solid var(--border-primary);
+    margin: 45px 0 0 0;
+}
+
+main table tr.first-row{
+    border-top: 1px solid var(--border-primary);
+}
+
+main table tr.first-row td{
+    padding-bottom: 0;
+}
+
+main table tr td:nth-child(4){
+    width: 92px !important;
+    min-width: 92px !important;
+}
+
+main table tr td:nth-child(5){
+    width: 74px !important;
+    min-width: 74px !important;
+}
+
+main table tr td:nth-child(6){
+    width: 92px !important;
+    min-width: 92px !important;
+}
+
+main table tbody .btn{
+    padding: .2rem .3rem;
+    font-size: .7rem;
+    line-height: 1.15em;
+    border-radius: .2rem;
+    -webkit-transition: color .20s ease-in-out,
+              background-color .20s ease-in-out,
+              border-color .20s ease-in-out,
+              -webkit-box-shadow .20s ease-in-out;
+    transition: color .20s ease-in-out,
+              background-color .20s ease-in-out,
+              border-color .20s ease-in-out,
+              -webkit-box-shadow .20s ease-in-out;
+    -o-transition: color .20s ease-in-out,
+              background-color .20s ease-in-out,
+              border-color .20s ease-in-out,
+              box-shadow .20s ease-in-out;
+    transition: color .20s ease-in-out,
+              background-color .20s ease-in-out,
+              border-color .20s ease-in-out,
+              box-shadow .20s ease-in-out;
+    transition: color .20s ease-in-out,
+              background-color .20s ease-in-out,
+              border-color .20s ease-in-out,
+              box-shadow .20s ease-in-out,
+              -webkit-box-shadow .20s ease-in-out;
+}
+
+main table tbody .rotator-title h5 {
+    font-size: 1rem;
+    color: var(--secondary-font-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+main table tbody .timestamp p {
+    font-size: 0.8rem;
+    color: var(--secondary-font-color);
+    font-weight: 400;
+    font-style: italic;
+    margin: 0;
+}
+
+main table tbody a{
+  font-size: 0.9rem;
+  color: var(--primary-font-color);
+  cursor: pointer;
+
+}
+
+main table tbody a:hover{
+  text-decoration: underline;
+  color: var(--primary-font-color);
+}
+
+main table tbody ion-icon[name="link"]{
+  -webkit-transform: rotate(-45deg);
+      -ms-transform: rotate(-45deg);
+          transform: rotate(-45deg);
+  --ionicon-stroke-width: 80px;
+  color: var(--primary-font-color);
+}
+
+main table tbody .rotator-title ion-icon {
+  font-size: 1rem;
+  --ionicon-stroke-width: 45px;
+  color: var(--secondary-font-color);
+  -webkit-transition: 0.2s ease-in-out;
+  -o-transition: 0.2s ease-in-out;
+  transition: 0.2s ease-in-out;
+}
+
+main table tbody .rotator-title ion-icon:hover {
+  color: #757c8c;
+}
+
+
+
+#exampleModalCenter{
+  color: var(--secondary-font-color) !important;
+}
+
+#exampleModalCenter .modal-content{
+  background-color: var(--background-tertiary);
+}
+
+#exampleModalCenter .modal-header{
+  border-bottom: 1px solid var(--border-primary);
+  padding: 0.6rem 1rem;
+}
+
+#exampleModalCenter .modal-header h5{
+  font-weight: 600;
+}
+
+#exampleModalCenter .modal-header .close{
+    background-color: none;
+    color: var(--secondary-font-color);
+    text-shadow: none;
+    opacity: 1;
+}
+
+
+#exampleModalCenter .modal-footer{
+  border-top: none;
+}
+
+#exampleModalCenter .modal-footer button{
+  padding: .4rem .9rem;
+  font-size: .9rem;
+}
+
+#exampleModalCenter .modal-footer button.archive-btn{
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+
+
+#exampleModalCenter .modal-footer button.archive-btn:hover{
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+/*-----------------------*/
+/*CREATE FORM SECTION*/
+/*-----------------------*/
+
+main .form-content,
+main .form-content-settings {
+  max-width: 700px;
+  margin: 2rem auto;
+}
+
+main .form-content-settings {
+  max-width: 500px;
+}
+
+main .form-content h3,
+main .form-content-settings h3 {
+  color: var(--secondary-font-color);
+  border-bottom: 1px solid var(--border-primary);
+}
+
+main .create-edit-form {
+  padding: 20px 30px 20px 30px;
+}
+
+main .create-edit-form .form-control{
+  color: var(--secondary-font-color);
+}
+
+main .create-edit-form .form-control:disabled, .form-control[readonly] {
+    background-color: var(--background-tertiary);
+    opacity: 1;
+}
+
+main .create-edit-form .urls-container .url-pair {
+  padding: 0em 0 0.8em 0;
+}
+
+main .create-edit-form .urls-container .url-pair .form-group:last-child {
+  margin: 0 0;
+}
+
+main .create-edit-form .destination-num{
+  text-align: center;
+}
+
+main .create-edit-form .destination-input::-webkit-input-placeholder, main .create-edit-form .name-input::-webkit-input-placeholder, main .create-edit-form .percent-input::-webkit-input-placeholder{
+  color: var(--secondary-font-color);
+  opacity: 1;
+}
+
+main .create-edit-form .destination-input::-moz-placeholder, main .create-edit-form .name-input::-moz-placeholder, main .create-edit-form .percent-input::-moz-placeholder{
+  color: var(--secondary-font-color);
+  opacity: 1;
+}
+
+main .create-edit-form .destination-input:-ms-input-placeholder, main .create-edit-form .name-input:-ms-input-placeholder, main .create-edit-form .percent-input:-ms-input-placeholder{
+  color: var(--secondary-font-color);
+  opacity: 1;
+}
+
+main .create-edit-form .destination-input::-ms-input-placeholder, main .create-edit-form .name-input::-ms-input-placeholder, main .create-edit-form .percent-input::-ms-input-placeholder{
+  color: var(--secondary-font-color);
+  opacity: 1;
+}
+
+main .create-edit-form .destination-input::placeholder,
+main .create-edit-form .name-input::placeholder,
+main .create-edit-form .percent-input::placeholder{
+  color: var(--secondary-font-color);
+  opacity: 1;
+}
+
+main .create-edit-form .destination-input:-ms-input-placeholder,
+main .create-edit-form .name-input:-ms-input-placeholder,
+main .create-edit-form .percent-input:-ms-input-placeholder{
+  color: var(--secondary-font-color);
+}
+
+main .create-edit-form .destination-input::-ms-input-placeholder,
+main .create-edit-form .name-input::-ms-input-placeholder,
+main .create-edit-form .percent-input::-ms-input-placeholder{
+  color: var(--secondary-font-color);
+}
+
+
+main .create-edit-form .delete-btn {
+  padding: 0rem 0.05rem;
+  -webkit-transition: 0.3s ease-in-out;
+  -o-transition: 0.3s ease-in-out;
+  transition: 0.3s ease-in-out;
+  background-color: var(--button-tertiary);
+  border: 1px solid var(--button-tertiary);
+  border-radius: 50%;
+  height: 20px;
+  width: 20px;
+  top: -9px;
+  right: -5px;
+  line-height: 11px;
+}
+
+main .create-edit-form .delete-btn ion-icon {
+  border-radius: 50%;
+  font-size: 0.8rem;
+  vertical-align: middle;
+  --ionicon-stroke-width: 80px;
+}
+
+main .create-edit-form .delete-btn:hover {
+  background-color: #d23430;
+  border-color: #d23430;
+}
+
+main .create-edit-form .error-message {
+  display: none;
+  /*display: inline-block;*/
+  margin: 0;
+  font-weight: 500;
+  color: var(--error-color);
+  font-size: .85rem;
+  vertical-align: middle;
+}
+
+/*main .create-edit-form .error-div .error-message{
+  margin-bottom: 0;
+}*/
+
+main .create-edit-form p.error-message{
+  /*margin: 0px auto 15px auto;*/
+  display: none;
+}
+
+
+main .create-edit-form .addFieldBtn{
+  padding: .1rem .75rem;    
+  font-weight: 500;
+  font-size: 0.75rem;
+  -webkit-transition: 0.2s ease-in-out;
+  -o-transition: 0.2s ease-in-out;
+  transition: 0.2s ease-in-out;
+}
+
+
+main .create-edit-form .addFieldBtn ion-icon {
+  --ionicon-stroke-width: 80px;
+  vertical-align: middle;
+  height: 20px;
+  width: 15px;
+}
+
+main .create-edit-form hr{
+  background-color: var(--border-primary);
+}
+
+
+/*Auto/Manual Allocation Button*/
+
+.perc-click-button-div input[type="checkbox"],
+.auto-man-button-div input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  z-index: -1;
+}
+
+.perc-click-button-div input[type="checkbox"],
+.perc-click-button-div label {
+  float: none;
+}
+
+.auto-man-button-div input[type="checkbox"], 
+.auto-man-button-div label {
+  float: right;
+}
+
+.perc-click-button-div p,
+.auto-man-button-div p {
+  float: left;
+  margin-top: 2px; 
+  margin-bottom: 0;
+  color: var(--secondary-font-color);
+}
+
+
+.perc-click-button-div{
+  float: right;
+}
+
+
+.perc-click-button-div .check-trail,
+.auto-man-button-div .check-trail {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  width: 42px;
+  height: 22px;
+  background: var(--background-tertiary);
+  border-radius: 2.5em;
+  cursor: pointer;
+  border: 1px solid var(--border-primary);
+}
+
+.perc-click-button-div .check-trail{
+  float: right;
+}
+
+.perc-click-button-div .check-handler,
+.auto-man-button-div .check-handler {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  margin-left: 0.3em;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  width: 16px;
+  height: 16px;
+  background: var(--background-quaternary);
+  border-radius: 50%;
+  -webkit-transition: all .2s ease;
+  -o-transition: all .2s ease;
+  transition: all .2s ease;
+}
+
+
+
+.perc-click-button-div input[type="checkbox"]:checked + .check-trail,
+.auto-man-button-div input[type="checkbox"]:checked + .check-trail {
+  background: var(--background-tertiary);
+  border: 1px solid var(--border-primary);
+}
+
+
+.perc-click-button-div input[type="checkbox"]:checked + .check-trail .check-handler,
+.auto-man-button-div input[type="checkbox"]:checked + .check-trail .check-handler {
+  margin-left: 50%;
+  background-color: var(--primary-font-color);
+}
+
+
+.auto-man-button-div label {
+  margin-bottom: 0;
+}
+
+.default-page-div {
+  display: none;
+}
+
+/*-----------------------*/
+/*SETTINGS PAGE*/
+/*-----------------------*/
+
+/*main .form-content-settings{
+  max-width: 500px;
+  margin: 2rem auto;
+}*/
+
+
+/*-----------------------*/
+/*FOOTER*/
+/*-----------------------*/
+
+footer.footer{
+    -webkit-transition: padding-left 0.3s ease-in-out;
+    -o-transition: padding-left 0.3s ease-in-out;
+    transition: padding-left 0.3s ease-in-out;
+}
+
+footer .copyright p{
+    text-align: right;
+    font-weight: 500;
+    font-size: 0.8rem;
+    padding-right:20px;
+    color: var(--secondary-font-color);
+}
+
+footer .copyright span{
+    color: #ec1848;
+}
+
+footer .copyright a{
+  text-decoration: none;
+  color: var(--primary-font-color);
+}
+
+
+/*-----------------------*/
+/*HEADER*/
+/*-----------------------*/
+
+header .header-toggle-btn{
+    height: 50px;
+    width: 65px;
+}
+
+header .header-toggle-btn .sidebar-toggle ion-icon[name="chevron-back-outline"],
+header .header-title h4{
+  color: var(--secondary-font-color);
+}
+
+header ul li p {
+    font-size: 0.85rem;
+    font-style: italic;
+    display: inline-block;
+    line-height: normal;
+}
+
+header ul li ion-icon[name="warning"],
+header ul li ion-icon[name="checkmark-done-outline"] {
+  font-size: 1.1rem;
+  --ionicon-stroke-width: 50px;    
+  vertical-align: text-top;
+}
+
+header ul li.error-msg{
+  color: var(--error-color);
+}
+
+header ul li.success-msg{
+  color: #2ea823;
+}
+
+/*Dark Mode Toggle Button*/
+#dark-mode-button {
+    vertical-align: middle;
+    padding: 0 1.44rem;
+}
+
+#dark-mode-button input[type="checkbox"] {
+   position: absolute;
+   opacity: 0;
+   z-index: -1;
+}
+
+#light-icon,
+#dark-icon{
+  font-size: 1.5rem;
+  display: none;
+  -webkit-animation: flicker-in-1 2s linear both;
+          animation: flicker-in-1 2s linear both;
+  cursor: pointer;
+  color: var(--primary-font-color);
+  /*filter:drop-shadow(0px 0px 2px rgba(0,0,0,0.3));*/
+}
+
+#light-icon{
+  --ionicon-stroke-width: 55px;
+}
+
+#dark-mode-button label {
+  margin-bottom: -5px;
+}
+
+.disp {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  width: 70px;
+}
+
+/*----------------------------*/
+/*TOOLTIP*/
+/*----------------------------*/
+
+
+.form-tooltip:hover {
+    background: #ebebeb;
+}
+
+.form-tooltip {
+    text-transform: lowercase;
+    font-style: normal;
+    background: #f1f1f1;
+    width: 10px;
+    height: 10px;
+    display: inline-block;
+    text-align: center;
+    line-height: 10px;
+    border-radius: 100%;
+    color: #000;
+    cursor: help;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+
+
+
+
+/*----------------------------*/
+/*LOGIN FORM*/
+/*----------------------------*/
+
+.login {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  height: 100vh;
+}
+
+
+#login-container .login-screen {
+  background-color: var(--background-secondary);
+  padding: 20px;
+  border-radius: 5px;
+  -webkit-box-shadow: 0 1rem 3rem rgba(0,0,0,0.40);
+          box-shadow: 0 1rem 3rem rgba(0,0,0,0.40);
+}
+
+#login-container .login-logo {
+  width: 100%;
+  height: 70px;
+  text-align: center;
+  -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+}
+
+#login-container .login-logo img{
+  width: 70px;
+  height: 67px;
+}
+
+#login-container .login-logo-title h1{
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 600;
+  color: var(--primary-font-color);
+}
+
+#login-container .login-logo span:first-child,
+#login-container .login-logo span:last-child,
+#login-container .login-logo .fas {
+  font-weight: 600;
+  text-shadow: 0px 0px 5px rgba(0,0,0,0.3);
+  font-size: 2rem;
+  color: #3680E8;
+}
+
+
+
+/*#login-container .app-title {
+  text-align: center;
+}*/
+
+#login-container h4 {
+  font-weight: 600;
+  text-shadow: 0px 0px 5px rgba(0,0,0,0.3);
+  color: var(--secondary-font-color);
+  text-align: center;
+}
+
+
+#login-container .login-form {
+  text-align: center;
+}
+#login-container .control-group {
+  margin-bottom: 10px;
+}
+
+#login-container input {
+  text-align: center;
+  background-color: var(--background-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 3px;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 10px 0;
+  width: 250px;
+  -webkit-transition: border .5s;
+  -o-transition: border .5s;
+  transition: border .5s;
+  color: var(--secondary-font-color);
+}
+
+#login-container input:focus {
+  outline: none;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+}
+
+#login-container input::-webkit-input-placeholder{
+  color: var(--secondary-font-color);
+  font-weight: 600;
+}
+
+#login-container input::-moz-placeholder{
+  color: var(--secondary-font-color);
+  font-weight: 600;
+}
+
+#login-container input:-ms-input-placeholder{
+  color: var(--secondary-font-color);
+  font-weight: 600;
+}
+
+#login-container input::-ms-input-placeholder{
+  color: var(--secondary-font-color);
+  font-weight: 600;
+}
+
+#login-container input::placeholder{
+  color: var(--secondary-font-color);
+  font-weight: 600;
+}
+
+#login-container label[for="login-name"]{
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+
+#login-container .btn {
+  border: 2px solid transparent;
+  color: #ffffff;
+  font-size: 16px;
+  line-height: 25px;
+  padding: 10px 0;
+  text-decoration: none;
+  text-shadow: none;
+  border-radius: 3px;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+  -webkit-transition: 0.25s;
+  -o-transition: 0.25s;
+  transition: 0.25s;
+  display: block;
+  width: 250px;
+  margin: 0 auto;
+}
+
+#login-container .btn:hover {
+  background-color: var(--button-hover-secondary);
+  border-color: var(--button-hover-secondary);
+}
+
+
+#login-container .no-entry h5{
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  margin-top: 0.6rem;
+  color: #d9534f;
+  font-size: .85rem;
+  text-align: center;
+}
+
+#login-container form .error-msg p,
+main ul.nav-tabs .nav-item .error-msg,
+.modal form #error-dup-perc{
+  margin: 5px auto 8px auto;
+  font-weight: 600;
+  color: #d9534f;
+  font-size: .85rem;
+}
+
+
+
+/*----------------------------*/
+/*404 Page */
+/*----------------------------*/ 
+
+
+
+
+body#not-found-page .mainbox {
+  background-color: #95c2de;
+  margin: auto;
+  height: 600px;
+  width: 600px;
+  position: relative;
+}
+
+body#not-found-page .err {
+  color: #ffffff;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 11rem;
+  position:absolute;
+  left: 20%;
+  top: 8%;
+}
+
+body#not-found-page .far {
+  position: absolute;
+  font-size: 8.5rem;
+  left: 42%;
+  top: 17%;
+  color: #ffffff;
+}
+
+body#not-found-page .err2 {
+  color: #ffffff;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 11rem;
+  position:absolute;
+  left: 68%;
+  top: 8%;
+}
+
+body#not-found-page .msg {
+  text-align: center;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 1.6rem;
+  position:absolute;
+  left: 16%;
+  top: 47%;
+  width: 75%;
+  color: #000;
+}
+
+body#not-found-page a {
+  text-decoration: none;
+  color: white;
+}
+
+body#not-found-page a:hover {
+  text-decoration: underline;
+}
