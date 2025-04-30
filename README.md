@@ -21,6 +21,7 @@ A high-performance PHP application for managing and redirecting URLs with click 
 - 🔒 **Secure**:
   - Prepared statements
   - Input validation
+  - authentification
 
 ## Performance Optimizations
 
@@ -37,8 +38,8 @@ A high-performance PHP application for managing and redirecting URLs with click 
    - MySQL 5.7+ (XAMPP)
 
 2. **Setup**:
-   open phpmyadmin XAMPP 
-   init your database with spinova.sql
+   - open phpmyadmin XAMPP 
+   - init your database with spinova.sql
    ```bash
    git clone https://github.com/AlaBhs/Spinova.git
    cd Spinova
