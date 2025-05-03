@@ -68,6 +68,7 @@ class MainController
                     'name' => trim($_POST['name']),
                     'defaultUrl' => isset($_POST['defaultUrl']) && !empty(trim($_POST['defaultUrl'])) ? trim($_POST['defaultUrl']) : null,
                     'isClick' => isset($_POST['isClickCheckbox']) ?? 0,
+                    'isEqualDistribution' => isset($_POST['is_equal_distribution']) ?? 0,
                     'full' => []
                 ];
 
@@ -83,6 +84,7 @@ class MainController
                     }
                 }
 
+                error_log("Processed data: " . print_r($data, true));
                 if (empty($data['full'])) {
                     throw new Exception('At least one destination URL is required');
                 }
@@ -220,6 +222,8 @@ class MainController
     public function redirect($vars)
     {
         try {
+            $startTime = microtime(true);
+
             $shortCode = $vars['short'] ?? '';
 
             $link = new Link($this->db);
@@ -227,9 +231,11 @@ class MainController
             // 1. First check if link exists and get its status
             $linkData = $link->getByShortCode($shortCode);
 
+            // Check if link exists
             if (!$linkData) {
                 throw new Exception("Link not found");
             }
+
 
             // 2. Check if link is archived
             if ($linkData['isArchive']) {
@@ -241,6 +247,16 @@ class MainController
             if (empty($url)) {
                 throw new Exception("No valid URL to redirect to");
             }
+            // Calculate duration
+            $duration = round((microtime(true) - $startTime) * 1000, 2); // in milliseconds
+
+            // Log the timing
+            error_log(sprintf(
+                "[Redirect Timing] Short: %s | URL: %s | Time: %.2fms",
+                $shortCode,
+                $url,
+                $duration
+            ));
             header("Location: " . $url);
             exit;
         } catch (Exception $e) {

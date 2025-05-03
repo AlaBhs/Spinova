@@ -9,6 +9,7 @@ class Link
     public $id;
     public $name;
     public $is_click;
+    public $is_equal_distribution;
     public $default_destination_url;
     public $default_destination_visits;
     public $total_visits;
@@ -36,6 +37,7 @@ class Link
         $query = 'INSERT INTO ' . $this->table . ' 
                   SET name = :name,
                       is_click = :is_click,
+                      is_equal_distribution = :is_equal_distribution,
                       default_destination_url = :default_destination_url,
                       short = :short';
 
@@ -44,6 +46,7 @@ class Link
 
         $stmt->bindParam(':name', $this->name);
         $stmt->bindParam(':is_click', $this->is_click);
+        $stmt->bindParam(':is_equal_distribution', $this->is_equal_distribution);
         $stmt->bindParam(':default_destination_url', $this->default_destination_url);
         $stmt->bindParam(':short', $this->short);
 
@@ -108,6 +111,7 @@ class Link
             'id' => $row['id'],
             'name' => $row['name'],
             'is_click' => (bool)$row['is_click'],
+            'is_equal_distribution' => (bool)$row['is_equal_distribution'],
             'default_destination' => [
                 'url' => $row['default_destination_url'],
                 'visits' => $row['default_destination_visits']
@@ -174,17 +178,29 @@ class Link
         // 2. Get destinations for this link
         $this->destinations = $this->getDestinations($linkId);
 
-        // 3. Check if link is in click mode
+        // 3. Check link modes
         $this->is_click = $this->isClickMode($linkId);
+        $this->is_equal_distribution = $this->isEqualDistributionMode($linkId);
 
         // 4. Handle the redirection
         if ($this->is_click) {
             return $this->handleClickMode();
+        } elseif ($this->is_equal_distribution) {
+            return $this->handleEqualDistributionMode();
         } else {
             return $this->handlePercentageMode();
         }
     }
+    private function isEqualDistributionMode($linkId)
+    {
+        $query = 'SELECT is_equal_distribution FROM links WHERE id = :id LIMIT 1';
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $linkId);
+        $stmt->execute();
 
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (bool)$result['is_equal_distribution'];
+    }
     // Check if the link is in click mode
     private function isClickMode($linkId)
     {
@@ -250,6 +266,38 @@ class Link
 
         return $result;
     }
+
+    private function handleEqualDistributionMode()
+    {
+        $query = 'SELECT * FROM ' . $this->destinations_table . ' 
+                  WHERE link_id = ?';
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute([$this->id]);
+        $destinations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($destinations)) {
+            return $this->default_destination_url;
+        }
+
+        if (empty($this->destinations)) {
+            return $this->getDefaultUrl();
+        }
+
+        // Option 1: Round-robin distribution
+        // $index = ($this->total_visits % count($destinations));
+        // $selected = $destinations[$index];
+        // Option 2: Least-visited distribution (uncomment to use instead)
+
+        usort($destinations, function ($a, $b) {
+            return $a['visits'] <=> $b['visits'];
+        });
+        $selected = $destinations[0];
+
+
+        $this->updateDestinationVisits($selected['id']);
+        return $selected['url'];
+    }
+
     // Handle redirection based on percentage mode
     private function handlePercentageMode()
     {
@@ -334,7 +382,7 @@ class Link
                     name = :name,
                     is_click = :is_click,
                     default_destination_url = :default_url,' .
-                    ($data['isClick'] ? '' : ' default_destination_visits = 0,') . '
+                ($data['isClick'] ? '' : ' default_destination_visits = 0,') . '
                     updated_at = NOW()
                   WHERE short = :short';
 
@@ -485,9 +533,10 @@ class Link
         }
         $this->name = $data['name'];
         $this->is_click = $data['isClick'];
+        $this->is_equal_distribution = isset($data['isEqualDistribution']) ? $data['isEqualDistribution'] : 0;
         $this->default_destination_url = $data['defaultUrl'];
         $this->destinations = [];
-        
+
         foreach ($data['full'] as $destination) {
             $this->destinations[] = [
                 'url' => $destination['url'],

@@ -12,6 +12,24 @@ $(document).ready(function () {
     const percClickCheckBox = document.querySelector(
       `.${target} .perc-click-button-div input[type="checkbox"]`
     );
+    $("#auto-man-create-input").change(function () {
+      if ($("#equal-dist-create-input").is(":checked")) {
+        $(this).prop("checked", true);
+        $(".auto-man-span-createForm").text("Auto");
+        return;
+      }
+    });
+    $("#equal-dist-create-input").change(function () {
+      const isEqual = $(this).is(":checked");
+      if (isEqual) {
+        calcperc();
+        autoManCheckBox.checked = true;
+        $(".auto-man-span-createForm").text("Auto");
+      }
+      $(".percent-input").each(function () {
+        $(this).prop("disabled", isEqual);
+      });
+    });
     const errorMsg = $(`.${target} p.error-message`);
     const html = `
     <div class="form-row url-pair">
@@ -45,7 +63,7 @@ $(document).ready(function () {
       if ($(`.${target} .destination-input`).length < 100) {
         errorMsg.fadeOut();
         $(urlsContainer).append(html);
-        if(autoManCheckBox.checked === false) {
+        if (autoManCheckBox.checked === true) {
           calcperc();
         }
         inputFocus();
@@ -67,7 +85,7 @@ $(document).ready(function () {
         ? $(targetElement).closest(".url-pair")
         : destinationFields.last();
       fieldToRemove.remove();
-      if(autoManCheckBox.checked === false) {
+      if (autoManCheckBox.checked === true) {
         calcperc();
       }
       errorMsg.fadeOut();
@@ -88,28 +106,31 @@ $(document).ready(function () {
       );
     };
 
-    const recalcPercentages = function() {
+    const recalcPercentages = function () {
       // Skip if in auto or click mode
-      if (autoManCheckBox.checked || percClickCheckBox.checked) return;
-    
+      if (!autoManCheckBox.checked || percClickCheckBox.checked) return;
+
       const $inputs = $(`.${target} .percent-input`);
       const currentVal = parseFloat(this.value) || 0;
-      
+
       if ($inputs.length > 1) {
         // Validate input (0-100)
         if (currentVal < 0) this.value = 0;
         if (currentVal > 100) this.value = 100;
-        
+
         const remaining = 100 - currentVal;
-        const otherValue = Math.max(0, (remaining / ($inputs.length - 1)).toFixed(0));
-        
+        const otherValue = Math.max(
+          0,
+          (remaining / ($inputs.length - 1)).toFixed(0)
+        );
+
         $inputs.not(this).val(otherValue);
       } else {
         this.value = "100";
       }
-      
+
       // Optional: trigger change event for other fields
-      $inputs.not(this).trigger('change');
+      $inputs.not(this).trigger("change");
     };
 
     const compareInputVal = function () {
@@ -184,9 +205,9 @@ $(document).ready(function () {
       const span = $(`.auto-man-span-${target}`);
 
       if (autoManCheckBox.checked === true) {
-        $(span).text("Manual");
-      } else {
         $(span).text("Auto");
+      } else {
+        $(span).text("Manual");
       }
     };
 
@@ -201,12 +222,17 @@ $(document).ready(function () {
           $(span2).text("Clicks");
           $(item).attr({ name: "clicks[]", placeholder: "clicks.." });
           $(".default-page-div").slideDown();
+          $(".equal-dist-button-div").slideUp();
+          $("#equal-dist-create-input")
+            .prop("checked", false)
+            .trigger("change");
           $('.default-page-div input[type="url"]').attr("disabled", false);
         } else {
           $(span1).text("Clicks");
           $(span2).text("Percent (%)");
           $(item).attr({ name: "perc[]", placeholder: "%" });
           $(".default-page-div").slideUp();
+          $(".equal-dist-button-div").slideDown();
           $('.default-page-div input[type="url"]').attr("disabled", true);
         }
       });
@@ -230,7 +256,7 @@ $(document).ready(function () {
       .on("click", percClickCheckBox, percClickChangeSpan)
       .on("click", ".addFieldBtn", addFields)
       .on("click", ".reset-btn", resetForm)
-      .on('blur', '.percent-input', recalcPercentages)
+      .on("blur", ".percent-input", recalcPercentages)
       .on("click", ".delete-btn", function () {
         deleteField(this);
       });

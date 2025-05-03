@@ -567,7 +567,8 @@ main .create-edit-form hr{
 /*Auto/Manual Allocation Button*/
 
 .perc-click-button-div input[type="checkbox"],
-.auto-man-button-div input[type="checkbox"] {
+.auto-man-button-div input[type="checkbox"],
+.equal-dist-button-div input[type="checkbox"] {
   position: absolute;
   opacity: 0;
   z-index: -1;
@@ -583,8 +584,13 @@ main .create-edit-form hr{
   float: right;
 }
 
+.equal-dist-button-div input[type="checkbox"],
+.equal-dist-button-div label {
+  float: right;
+}
 .perc-click-button-div p,
-.auto-man-button-div p {
+.auto-man-button-div p ,
+.equal-dist-button-div p {
   float: left;
   margin-top: 2px; 
   margin-bottom: 0;
@@ -598,7 +604,8 @@ main .create-edit-form hr{
 
 
 .perc-click-button-div .check-trail,
-.auto-man-button-div .check-trail {
+.auto-man-button-div .check-trail , 
+.equal-dist-button-div .check-trail {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -618,7 +625,8 @@ main .create-edit-form hr{
 }
 
 .perc-click-button-div .check-handler,
-.auto-man-button-div .check-handler {
+.auto-man-button-div .check-handler,
+.equal-dist-button-div .check-handler {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -641,20 +649,23 @@ main .create-edit-form hr{
 
 
 .perc-click-button-div input[type="checkbox"]:checked + .check-trail,
-.auto-man-button-div input[type="checkbox"]:checked + .check-trail {
+.auto-man-button-div input[type="checkbox"]:checked + .check-trail ,
+.equal-dist-button-div input[type="checkbox"]:checked + .check-trail {
   background: var(--background-tertiary);
   border: 1px solid var(--border-primary);
 }
 
 
 .perc-click-button-div input[type="checkbox"]:checked + .check-trail .check-handler,
-.auto-man-button-div input[type="checkbox"]:checked + .check-trail .check-handler {
+.auto-man-button-div input[type="checkbox"]:checked + .check-trail .check-handler,
+.equal-dist-button-div input[type="checkbox"]:checked + .check-trail .check-handler {
   margin-left: 50%;
   background-color: var(--primary-font-color);
 }
 
 
-.auto-man-button-div label {
+.auto-man-button-div label,
+.equal-dist-button-div label {
   margin-bottom: 0;
 }
 

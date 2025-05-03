@@ -31,6 +31,7 @@ CREATE TABLE `links` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `is_click` tinyint(1) DEFAULT 0,
+  `is_equal_distribution` tinyint(1) DEFAULT 0,
   `default_destination_url` varchar(255) DEFAULT '',
   `default_destination_visits` int(11) DEFAULT 0,
   `total_visits` int(11) NOT NULL DEFAULT 0,

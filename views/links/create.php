@@ -91,7 +91,7 @@
 
                             <div class="form-group float-right mb-0 auto-man-button-div">
                                 <p class="mr-2">
-                                    <span class="mr-2 auto-man-span-createForm">Auto</span><i class="form-tooltip mr-2" title="Manual/Auto Percentage Allocation. Default: Auto">?</i>
+                                    <span class="mr-2 auto-man-span-createForm">Manual</span><i class="form-tooltip mr-2" title="Manual/Auto Percentage Allocation. Default: Auto">?</i>
                                 </p>
 
                                 <input id="auto-man-create-input" type="checkbox">
@@ -101,8 +101,17 @@
                                 </label>
                             </div>
                         </div>
-
-                        <hr class="my-3">
+                        <div class="form-group float-right mb-0 equal-dist-button-div">
+                            <p class="mr-2">
+                                <span class="mr-2 equal-dist-span-createForm">Equal</span>
+                                <i class="form-tooltip mr-2" title="Enable equal distribution among all destinations (overrides percentages)">?</i>
+                            </p>
+                            <input id="equal-dist-create-input" type="checkbox" name="is_equal_distribution">
+                            <label for="equal-dist-create-input" class="check-trail">
+                                <span class="check-handler"></span>
+                            </label>
+                        </div>
+                        <hr class="mt-5" style="height: 1px; background-color: var(--background-tertiary);">
                         <p class="error-message float-left"></p>
 
                         <button type="submit" class="btn btn-primary float-right py-1">Create</button>
