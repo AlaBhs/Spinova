@@ -10,6 +10,7 @@ class Link
     public $name;
     public $is_click;
     public $is_equal_distribution;
+    public $os_filter_enabled;
     public $default_destination_url;
     public $default_destination_visits;
     public $total_visits;
@@ -38,6 +39,7 @@ class Link
                   SET name = :name,
                       is_click = :is_click,
                       is_equal_distribution = :is_equal_distribution,
+                      os_filter_enabled = :os_filter_enabled,
                       default_destination_url = :default_destination_url,
                       short = :short';
 
@@ -47,13 +49,20 @@ class Link
         $stmt->bindParam(':name', $this->name);
         $stmt->bindParam(':is_click', $this->is_click);
         $stmt->bindParam(':is_equal_distribution', $this->is_equal_distribution);
+        $stmt->bindParam(':os_filter_enabled', $this->os_filter_enabled);
         $stmt->bindParam(':default_destination_url', $this->default_destination_url);
         $stmt->bindParam(':short', $this->short);
 
         if ($stmt->execute()) {
             $this->id = $this->conn->lastInsertId();
 
-            $destinationsResult = $this->addDestinations();
+            // Handle destinations based on mode
+            if ($this->os_filter_enabled) {
+                $destinationsResult = $this->addOSDestinations();
+            } else {
+                $destinationsResult = $this->addDestinations();
+            }
+
             return $destinationsResult;
         }
 
@@ -88,7 +97,32 @@ class Link
 
         return $success;
     }
+    private function addOSDestinations()
+    {
+        if (empty($this->destinations)) {
+            return true;
+        }
 
+        $success = true;
+
+        foreach ($this->destinations as $destination) {
+            $query = 'INSERT INTO link_os_destinations 
+                      SET link_id = :link_id,
+                          os = :os,
+                          url = :url';
+
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(':link_id', $this->id);
+            $stmt->bindParam(':os', $destination['os']);
+            $stmt->bindParam(':url', $destination['url']);
+
+            if (!$stmt->execute()) {
+                $success = false;
+            }
+        }
+
+        return $success;
+    }
     // Get link by short code
     public function getByShortCode($short)
     {
@@ -339,33 +373,57 @@ class Link
      */
     public function getAllActive()
     {
+        // Get all active links
         $query = 'SELECT * FROM ' . $this->table . ' WHERE isArchive = 0 ORDER BY created_at DESC';
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-
+    
         $links = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $link = new Link();
             $link->id = $row['id'];
             $link->name = $row['name'];
             $link->is_click = $row['is_click'];
+            $link->is_equal_distribution = $row['is_equal_distribution'];
+            $link->os_filter_enabled = $row['os_filter_enabled'];
             $link->default_destination_url = $row['default_destination_url'];
             $link->default_destination_visits = $row['default_destination_visits'];
             $link->total_visits = $row['total_visits'];
             $link->short = $row['short'];
             $link->created_at = $row['created_at'];
             $link->updated_at = $row['updated_at'];
-
-            // Get destinations
-            $queryDest = 'SELECT * FROM ' . $this->destinations_table . ' WHERE link_id = :link_id';
-            $stmtDest = $this->conn->prepare($queryDest);
-            $stmtDest->bindParam(':link_id', $link->id);
-            $stmtDest->execute();
-            $link->destinations = $stmtDest->fetchAll(PDO::FETCH_ASSOC);
-
+    
+            // Get destinations based on link type
+            if ($link->os_filter_enabled) {
+                // Get OS-specific destinations
+                $queryDest = 'SELECT * FROM link_os_destinations WHERE link_id = :link_id ORDER BY os';
+                $stmtDest = $this->conn->prepare($queryDest);
+                $stmtDest->bindParam(':link_id', $link->id);
+                $stmtDest->execute();
+                
+                // Format to match regular destinations structure
+                $link->destinations = array_map(function($dest) {
+                    return [
+                        'url' => $dest['url'],
+                        'visits' => $dest['visits'],
+                        'os' => $dest['os'],
+                        'percentage' => null,
+                        'clicks' => null
+                    ];
+                }, $stmtDest->fetchAll(PDO::FETCH_ASSOC));
+            } else {
+                // Get regular destinations
+                $queryDest = 'SELECT * FROM ' . $this->destinations_table . ' WHERE link_id = :link_id';
+                $stmtDest = $this->conn->prepare($queryDest);
+                $stmtDest->bindParam(':link_id', $link->id);
+                $stmtDest->execute();
+                
+                $link->destinations = $stmtDest->fetchAll(PDO::FETCH_ASSOC);
+            }
+    
             $links[] = $link;
         }
-
+    
         return $links;
     }
 
@@ -528,24 +586,52 @@ class Link
      */
     public function createFromProcessedData($data)
     {
-        if (!isset($data['isClick']) || $data['isClick'] === '') {
-            $data['isClick'] = 0;
-        }
-        $this->name = $data['name'];
-        $this->is_click = $data['isClick'];
-        $this->is_equal_distribution = isset($data['isEqualDistribution']) ? $data['isEqualDistribution'] : 0;
-        $this->default_destination_url = $data['defaultUrl'];
+        // Set default values if not provided
+        $data['isClick'] = $data['isClick'] ?? 0;
+        $data['isEqualDistribution'] = $data['isEqualDistribution'] ?? 0;
+        $data['osFilterEnabled'] = $data['osFilterEnabled'] ?? 0;
+
+        // Set link properties
+        $this->name = trim($data['name']);
+        $this->is_click = (int)$data['isClick'];
+        $this->is_equal_distribution = (int)$data['isEqualDistribution'];
+        $this->os_filter_enabled = (int)$data['osFilterEnabled'];
+        $this->default_destination_url = !empty($data['defaultUrl']) ? trim($data['defaultUrl']) : null;
         $this->destinations = [];
 
-        foreach ($data['full'] as $destination) {
-            $this->destinations[] = [
-                'url' => $destination['url'],
-                'percentage' => $destination['perc'] ?? null,
-                'clicks' => $destination['clicks'] ?? null
-            ];
+        // Process destinations based on link type
+        if (!empty($data['full'])) {
+            foreach ($data['full'] as $destination) {
+                if ($this->os_filter_enabled) {
+                    // OS Filter mode - store OS-specific URLs
+                    $this->destinations[] = [
+                        'os' => $destination['os'] ?? 'other',
+                        'url' => trim($destination['url'])
+                    ];
+                } elseif ($this->is_click) {
+                    // Click mode - store clicks
+                    $this->destinations[] = [
+                        'url' => trim($destination['url']),
+                        'clicks' => (int)($destination['clicks'] ?? 0)
+                    ];
+                } else {
+                    // Percentage mode (with optional equal distribution)
+                    $this->destinations[] = [
+                        'url' => trim($destination['url']),
+                        'percentage' => $this->is_equal_distribution
+                            ? (100 / count($data['full']))
+                            : ($destination['perc'] ?? null)
+                    ];
+                }
+            }
         }
 
-        return $this->create();
+        // Create the link and its destinations
+        if ($this->create()) {
+            return true;
+        }
+
+        return false;
     }
     /**
      * Get all archived links
@@ -557,17 +643,46 @@ class Link
     public function getAllArchived()
     {
         try {
-            $query = 'SELECT * FROM links WHERE isArchive = 1';
+            // Get all archived links
+            $query = 'SELECT * FROM links WHERE isArchive = 1 ORDER BY created_at DESC';
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
             $links = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+    
             // Load destinations for each link
             foreach ($links as &$link) {
-                $link['destinations'] = $this->getLinkDestinations($link['id']);
-                $link['full'] = $link['destinations']; // For template compatibility
+                if ($link['os_filter_enabled']) {
+                    // Get OS-specific destinations
+                    $queryDest = 'SELECT *, url as destination_url, visits as destination_visits 
+                                 FROM link_os_destinations 
+                                 WHERE link_id = :link_id 
+                                 ORDER BY os';
+                    $stmtDest = $this->conn->prepare($queryDest);
+                    $stmtDest->bindParam(':link_id', $link['id']);
+                    $stmtDest->execute();
+                    $link['destinations'] = $stmtDest->fetchAll(PDO::FETCH_ASSOC);
+                    $link['full'] = array_map(function($dest) {
+                        return [
+                            'url' => $dest['destination_url'],
+                            'visits' => $dest['destination_visits'],
+                            'os' => $dest['os'],
+                            'percentage' => null,
+                            'clicks' => null
+                        ];
+                    }, $link['destinations']);
+                } else {
+                    // Get regular destinations
+                    $link['destinations'] = $this->getLinkDestinations($link['id']);
+                    $link['full'] = $link['destinations']; // For template compatibility
+                }
+    
+                // Add default destination info for consistency
+                $link['defaultDestination'] = [
+                    'url' => $link['default_destination_url'],
+                    'visits' => $link['default_destination_visits']
+                ];
             }
-
+    
             return $links;
         } catch (Exception $e) {
             error_log('Archive Error: ' . $e->getMessage());

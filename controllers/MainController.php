@@ -69,18 +69,38 @@ class MainController
                     'defaultUrl' => isset($_POST['defaultUrl']) && !empty(trim($_POST['defaultUrl'])) ? trim($_POST['defaultUrl']) : null,
                     'isClick' => isset($_POST['isClickCheckbox']) ?? 0,
                     'isEqualDistribution' => isset($_POST['is_equal_distribution']) ?? 0,
+                    'osFilterEnabled' => isset($_POST['os_filter_enabled']) ? 1 : 0,
                     'full' => []
                 ];
 
-                // Process destinations
-                foreach ($_POST['url'] as $index => $url) {
-                    if (!empty(trim($url))) {
-                        $destination = [
-                            'url' => trim($url),
-                            'perc' => $data['isClick'] ? null : (isset($_POST['perc'][$index]) ? ($_POST['perc'][$index]) : null),
-                            'clicks' => $data['isClick'] ? ($_POST['clicks'][$index] ?? 0) : null
-                        ];
-                        $data['full'][] = $destination;
+                // Process destinations based on mode
+                if ($data['osFilterEnabled']) {
+                    // Handle OS-specific URLs
+                    if (!empty($_POST['os']) && !empty($_POST['os_url'])) {
+                        foreach ($_POST['os'] as $index => $os) {
+                            if (!empty(trim($_POST['os_url'][$index]))) {
+                                $data['full'][] = [
+                                    'os' => $os,
+                                    'url' => trim($_POST['os_url'][$index]),
+                                    'perc' => null,
+                                    'clicks' => null
+                                ];
+                            }
+                        }
+                    }
+                } else {
+                    // Handle regular URLs (percentage or click mode)
+                    if (!empty($_POST['url'])) {
+                        foreach ($_POST['url'] as $index => $url) {
+                            if (!empty(trim($url))) {
+                                $data['full'][] = [
+                                    'url' => trim($url),
+                                    'perc' => $data['isClick'] ? null : ($_POST['perc'][$index] ?? null),
+                                    'clicks' => $data['isClick'] ? ($_POST['clicks'][$index] ?? 0) : null,
+                                    'os' => null
+                                ];
+                            }
+                        }
                     }
                 }
 

@@ -235,14 +235,15 @@ main table tr td:nth-child(2),
 main table tr td:nth-child(3),
 main table tr td:nth-child(4),
 main table tr td:nth-child(5),
-main table tr td:nth-child(6) {
+main table tr td:nth-child(6),
+main table tr td:nth-child(7) {
   overflow: hidden;
   overflow-wrap: break-word;
 }
 
 main .table tr td:first-child {
-    width: 300px !important;
-    min-width: 300px !important;
+    width: 250px !important;
+    min-width: 250px !important;
     word-break: break-all;
 }
 
@@ -252,8 +253,8 @@ main table tr td:nth-child(2){
 }
 
 main table tr td:nth-child(3){
-    width: 300px !important;
-    min-width: 300px !important;
+    width: 250px !important;
+    min-width: 250px !important;
     word-break: break-all;
 }
 
@@ -283,6 +284,10 @@ main table tr td:nth-child(5){
 main table tr td:nth-child(6){
     width: 92px !important;
     min-width: 92px !important;
+}
+main table tr td:nth-child(7){
+    width: 102px !important;
+    min-width: 102px !important;
 }
 
 main table tbody .btn{
@@ -454,6 +459,9 @@ main .create-edit-form .urls-container .url-pair .form-group:last-child {
 main .create-edit-form .destination-num{
   text-align: center;
 }
+main .create-edit-form .destination-num-os{
+  text-align: center;
+}
 
 main .create-edit-form .destination-input::-webkit-input-placeholder, main .create-edit-form .name-input::-webkit-input-placeholder, main .create-edit-form .percent-input::-webkit-input-placeholder{
   color: var(--secondary-font-color);
@@ -568,7 +576,8 @@ main .create-edit-form hr{
 
 .perc-click-button-div input[type="checkbox"],
 .auto-man-button-div input[type="checkbox"],
-.equal-dist-button-div input[type="checkbox"] {
+.equal-dist-button-div input[type="checkbox"],
+.os-filter-button-div input[type="checkbox"] {
   position: absolute;
   opacity: 0;
   z-index: -1;
@@ -588,9 +597,14 @@ main .create-edit-form hr{
 .equal-dist-button-div label {
   float: right;
 }
+.os-filter-button-div input[type="checkbox"],
+.os-filter-button-div label {
+  float: right;
+}
 .perc-click-button-div p,
 .auto-man-button-div p ,
-.equal-dist-button-div p {
+.equal-dist-button-div p,
+.os-filter-button-div p {
   float: left;
   margin-top: 2px; 
   margin-bottom: 0;
@@ -605,7 +619,8 @@ main .create-edit-form hr{
 
 .perc-click-button-div .check-trail,
 .auto-man-button-div .check-trail , 
-.equal-dist-button-div .check-trail {
+.equal-dist-button-div .check-trail,
+.os-filter-button-div .check-trail {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -626,7 +641,8 @@ main .create-edit-form hr{
 
 .perc-click-button-div .check-handler,
 .auto-man-button-div .check-handler,
-.equal-dist-button-div .check-handler {
+.equal-dist-button-div .check-handler,
+.os-filter-button-div .check-handler {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -650,7 +666,8 @@ main .create-edit-form hr{
 
 .perc-click-button-div input[type="checkbox"]:checked + .check-trail,
 .auto-man-button-div input[type="checkbox"]:checked + .check-trail ,
-.equal-dist-button-div input[type="checkbox"]:checked + .check-trail {
+.equal-dist-button-div input[type="checkbox"]:checked + .check-trail,
+.os-filter-button-div input[type="checkbox"]:checked + .check-trail {
   background: var(--background-tertiary);
   border: 1px solid var(--border-primary);
 }
@@ -658,14 +675,16 @@ main .create-edit-form hr{
 
 .perc-click-button-div input[type="checkbox"]:checked + .check-trail .check-handler,
 .auto-man-button-div input[type="checkbox"]:checked + .check-trail .check-handler,
-.equal-dist-button-div input[type="checkbox"]:checked + .check-trail .check-handler {
+.equal-dist-button-div input[type="checkbox"]:checked + .check-trail .check-handler,
+.os-filter-button-div input[type="checkbox"]:checked + .check-trail .check-handler {
   margin-left: 50%;
   background-color: var(--primary-font-color);
 }
 
 
 .auto-man-button-div label,
-.equal-dist-button-div label {
+.equal-dist-button-div label,
+.os-filter-button-div label {
   margin-bottom: 0;
 }
 
@@ -1046,4 +1065,18 @@ body#not-found-page a {
 
 body#not-found-page a:hover {
   text-decoration: underline;
+}
+.is-invalid {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+.os-icon {
+  width: 20px;
+  height: 20px;
+  margin: 5px;
+  object-fit: contain;
+}
+
+.os-name {
+  font-size: 1.05em;
 }

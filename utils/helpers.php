@@ -145,7 +145,10 @@ function tbodyTemplate($links, $mode = 'dashboard')
                     number_format(floatval($percentage), 2) . '%') :
                 '-';
             $clicks = $el['clicks'] ?? $el['click_count'] ?? '-';
-
+            $osBadge = isset($el['os']) ? 
+            '<img src="/images/os/'.strtoupper($el['os']).'.png" alt="'.ucfirst($el['os']).'" class="os-icon">
+             <span class="os-name">'.strtoupper(substr($el['os'], 0, 3)).'</span>' : 
+            '-';
             $consecutiveTR .= '
                 <tr class="destination-row">
                     <td>&nbsp;</td>
@@ -154,6 +157,7 @@ function tbodyTemplate($links, $mode = 'dashboard')
                     <td>' . $visits . '</td>
                     <td>' . $perc . '</td>
                     <td>' . $clicks . '</td>
+                    <td>' . $osBadge . '</td>
                 </tr>';
         }
 
