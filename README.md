@@ -9,12 +9,19 @@ A high-performance PHP application for managing and redirecting URLs with click 
 ## Features
 
 - 🚀 **Fast redirects** - Average response time under 20ms
-- ⚖️ **Two redirect modes**:
+- ⚖️ **Multiple redirect modes**:
   - Percentage-based distribution
   - Click-limited destinations
+  - OS-based routing (New!)
+- 🌐 **OS Detection**:
+  - Windows, macOS, Linux
+  - iOS, Android
+  - Chrome OS support
+  - Other/fallback handling
 - 📊 **Tracking**:
   - Total visits per link
   - Individual destination visits
+  - OS-specific visit analytics
 - 🗄️ **Link management**:
   - Create/edit/archive links
   - Set default fallback URLs
@@ -29,7 +36,7 @@ A high-performance PHP application for managing and redirecting URLs with click 
 - Atomic transaction handling
 - Efficient weighted random algorithm
 - Minimal database roundtrips
-
+- Lightweight OS detection (no external dependencies)
 
 ## Installation
 
