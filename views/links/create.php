@@ -19,9 +19,9 @@
                                     <i class="form-tooltip mr-2 ml-1" title="Percentage/Click Mode. Default: Percentage">?</i>
                                 </p>
 
-                                <input id="perc-click-create-input" type="checkbox" name="isClickCheckbox">
+                                <input id="perc-click-createForm-input" type="checkbox" name="isClickCheckbox">
 
-                                <label for="perc-click-create-input" class="check-trail">
+                                <label for="perc-click-createForm-input" class="check-trail">
                                     <span class="check-handler"></span>
                                 </label>
                             </div>
@@ -30,7 +30,7 @@
 
                         </div>
 
-                        <div class="form-group default-page-div">
+                        <div class="form-group default-page-div" >
                             <label>Default Destination</label>
                             <i class="form-tooltip mr-2 ml-1" title="Traffic will be redirected to this page after all click counts are filled.">?</i>
 
@@ -49,36 +49,42 @@
                         </div>
 
                         <div class="urls-container">
-                            <div class="form-row url-pair">
-                                <div class="form-group col-2 mb-2">
-                                    <input class="form-control destination-num" type="text" disabled value="1">
-                                </div>
-                                <div class="form-group col-7 mb-2">
-                                    <input class="form-control destination-input" type="url" name="url[]" value="https://" placeholder="destination url..." autocomplete="off" required>
-                                </div>
-                                <div class="form-group col-3 mb-2 position-relative">
-                                    <input class="form-control percent-input" type="number" name="perc[]" autocomplete="off" placeholder="%" max="100" min="0" required>
+                            <div class="regular-urls">
+                                <div class="form-row url-pair">
+                                    <div class="form-group col-2 mb-2">
+                                        <input class="form-control destination-num" type="text" disabled value="1">
+                                    </div>
+                                    <div class="form-group col-7 mb-2">
+                                        <input class="form-control destination-input" type="url" name="url[]" value="https://" placeholder="destination url..." autocomplete="off" >
+                                    </div>
+                                    <div class="form-group col-3 mb-2 position-relative">
+                                        <input class="form-control percent-input" type="number" name="perc[]" autocomplete="off" placeholder="%" max="100" min="0" >
 
-                                    <button type="button" class="btn btn-danger delete-btn position-absolute">
-                                        <ion-icon name="close-outline"></ion-icon>
-                                    </button>
+                                        <button type="button" class="btn btn-danger delete-btn position-absolute">
+                                            <ion-icon name="close-outline"></ion-icon>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-row url-pair">
+                                    <div class="form-group col-2 mb-2">
+                                        <input class="form-control destination-num" type="text" disabled value="2">
+                                    </div>
+                                    <div class="form-group col-7 mb-2">
+                                        <input class="form-control destination-input" type="url" name="url[]" value="https://" placeholder="destination url..." autocomplete="off" >
+                                    </div>
+                                    <div class="form-group col-3 mb-2 position-relative">
+                                        <input class="form-control percent-input" type="number" name="perc[]" autocomplete="off" placeholder="%" max="100" min="0">
+
+                                        <button type="button" class="btn btn-danger delete-btn position-absolute">
+                                            <ion-icon name="close-outline"></ion-icon>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="form-row url-pair">
-                                <div class="form-group col-2 mb-2">
-                                    <input class="form-control destination-num" type="text" disabled value="2">
-                                </div>
-                                <div class="form-group col-7 mb-2">
-                                    <input class="form-control destination-input" type="url" name="url[]" value="https://" placeholder="destination url..." autocomplete="off" required>
-                                </div>
-                                <div class="form-group col-3 mb-2 position-relative">
-                                    <input class="form-control percent-input" type="number" name="perc[]" autocomplete="off" placeholder="%" max="100" min="0" required>
+                            <div class="os-specific-urls" style="display:none;">
 
-                                    <button type="button" class="btn btn-danger delete-btn position-absolute">
-                                        <ion-icon name="close-outline"></ion-icon>
-                                    </button>
-                                </div>
                             </div>
                         </div>
 
@@ -94,24 +100,36 @@
                                     <span class="mr-2 auto-man-span-createForm">Manual</span><i class="form-tooltip mr-2" title="Manual/Auto Percentage Allocation. Default: Auto">?</i>
                                 </p>
 
-                                <input id="auto-man-create-input" type="checkbox">
+                                <input id="auto-man-createForm-input" type="checkbox">
 
-                                <label for="auto-man-create-input" class="check-trail">
+                                <label for="auto-man-createForm-input" class="check-trail">
                                     <span class="check-handler"></span>
                                 </label>
                             </div>
                         </div>
-                        <div class="form-group float-right mb-0 equal-dist-button-div">
-                            <p class="mr-2">
-                                <span class="mr-2 equal-dist-span-createForm">Equal</span>
-                                <i class="form-tooltip mr-2" title="Enable equal distribution among all destinations (overrides percentages)">?</i>
-                            </p>
-                            <input id="equal-dist-create-input" type="checkbox" name="is_equal_distribution">
-                            <label for="equal-dist-create-input" class="check-trail">
-                                <span class="check-handler"></span>
-                            </label>
+                        <div class="d-flex" style="flex-direction: column;align-items: flex-end;gap: 8px;">
+                            <div class="form-group float-right mb-0 equal-dist-button-div">
+                                <p class="mr-2">
+                                    <span class="mr-2 equal-dist-span-createForm">Equal</span>
+                                    <i class="form-tooltip mr-2" title="Enable equal distribution among all destinations (overrides percentages)">?</i>
+                                </p>
+                                <input id="equal-dist-createForm-input" type="checkbox" name="is_equal_distribution">
+                                <label for="equal-dist-createForm-input" class="check-trail">
+                                    <span class="check-handler"></span>
+                                </label>
+                            </div>
+                            <div class="form-group float-right mb-0 os-filter-button-div">
+                                <p class="mr-2">
+                                    <span class="mr-2 os-filter-span-createForm">OS Filter</span>
+                                    <i class="form-tooltip mr-2" title="Enable OS-specific URL routing">?</i>
+                                </p>
+                                <input id="os-filter-createForm-input" type="checkbox" name="os_filter_enabled">
+                                <label for="os-filter-createForm-input" class="check-trail">
+                                    <span class="check-handler"></span>
+                                </label>
+                            </div>
                         </div>
-                        <hr class="mt-5" style="height: 1px; background-color: var(--background-tertiary);">
+                        <hr style="height: 1px; background-color: var(--background-tertiary);">
                         <p class="error-message float-left"></p>
 
                         <button type="submit" class="btn btn-primary float-right py-1">Create</button>

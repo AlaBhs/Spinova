@@ -6,31 +6,67 @@ $(document).ready(function () {
     const urlsContainer = document.querySelector(
       `.content-container .${target} .urls-container`
     );
+    const regularUrlsContainer = document.querySelector(
+      `.content-container .${target} .urls-container .regular-urls`
+    );
+    const osUrlsContainer = document.querySelector(
+      `.content-container .${target} .urls-container .os-specific-urls`
+    );
     const autoManCheckBox = document.querySelector(
       `.${target} .auto-man-button-div input[type="checkbox"]`
     );
     const percClickCheckBox = document.querySelector(
       `.${target} .perc-click-button-div input[type="checkbox"]`
     );
-    $("#auto-man-create-input").change(function () {
-      if ($("#equal-dist-create-input").is(":checked")) {
+    const osFilterCheckBox = document.querySelector(
+      `.${target} .os-filter-button-div input[type="checkbox"]`
+    );
+    $(`#auto-man-${target}-input`).change(function () {
+      if ($(`#equal-dist-${target}-input`).is(":checked")) {
         $(this).prop("checked", true);
-        $(".auto-man-span-createForm").text("Auto");
+        $(`.auto-man-span-${target}`).text("Auto");
         return;
       }
     });
-    $("#equal-dist-create-input").change(function () {
+    $(`#equal-dist-${target}-input`).change(function () {
       const isEqual = $(this).is(":checked");
       if (isEqual) {
         calcperc();
         autoManCheckBox.checked = true;
-        $(".auto-man-span-createForm").text("Auto");
+        $(`.auto-man-span-${target}`).text("Auto");
       }
       $(".percent-input").each(function () {
         $(this).prop("disabled", isEqual);
       });
     });
+
     const errorMsg = $(`.${target} p.error-message`);
+    const html2 = `
+<div class="form-row os-url-pair">
+    <div class="form-group col-2 mb-2">
+        <input class="form-control destination-num-os" type="text" disabled>
+    </div>
+
+    <div class="form-group col-7 mb-2 position-relative">
+        <input class="form-control os-destination-input" type="url" name="os_url[]"
+            value="https://" placeholder="OS-specific destination..." autocomplete="off" required>
+
+    </div>
+    <div class="form-group col-3 mb-2">
+        <select class="form-control os-select" name="os[]" required>
+            <option value="windows">Windows</option>
+            <option value="macos">macOS</option>
+            <option value="linux">Linux</option>
+            <option value="ios">iOS</option>
+            <option value="android">Android</option>
+            <option value="other">Other/Default</option>
+        </select>
+        <button type="button" class="btn btn-danger delete-btn position-absolute">
+            <ion-icon name="close-outline"></ion-icon>
+        </button>
+    </div>
+</div>
+`;
     const html = `
     <div class="form-row url-pair">
         <div class="form-group col-2 mb-2">
@@ -57,20 +93,92 @@ $(document).ready(function () {
         </div>
     </div>
 `;
+    function addOSUrlField(container) {
+      container.append(html2);
+    }
+    function addUrlField(container) {
+      container.append(html);
+    }
 
     // add flields:
-    const addFields = function () {
-      if ($(`.${target} .destination-input`).length < 100) {
-        errorMsg.fadeOut();
-        $(urlsContainer).append(html);
-        if (autoManCheckBox.checked === true) {
-          calcperc();
-        }
-        inputFocus();
-        calcDestinationIdx();
+    // OS Filter toggle handler
+    $(`#os-filter-${target}-input`).change(function () {
+      console.log("OS Filter toggled");
+      const isOSFilter = $(this).is(":checked");
+      // Toggle between regular and OS-specific URLs
+      $(".regular-urls").toggle(!isOSFilter);
+      $(".os-specific-urls").toggle(isOSFilter);
+
+      if (isOSFilter) {
+        $(`#equal-dist-${target}-input, #auto-man-${target}-input, #perc-click-${target}-input`).prop(
+          "checked",
+          false
+        );
+        $(".equal-dist-button-div, .auto-man-button-div, .perc-click-button-div").slideUp();
+        $(`.perc-click-span-${target}-second`).text("Operating System");
+        $(".regular-urls").empty().hide();
+
+        const $osContainer = $(".os-specific-urls").empty().show();
+        $(".default-page-div").slideUp();
+        // Add initial OS URL fields
+        addOSUrlField($osContainer);
+        addOSUrlField($osContainer);
+        // Wait for DOM update
+        setTimeout(() => calcOsDestinationIdx(), 0);
+        setTimeout(() => percClickChangeSpan(), 0);
       } else {
-        errorMsg.html(`Can't have more than 100 fields!`);
-        errorMsg.fadeIn();
+        
+        $(".equal-dist-button-div, .auto-man-button-div, .perc-click-button-div").slideDown();
+        $(`.perc-click-span-${target}-second`).text("Percent (%)");
+        // Remove OS URL fields if OS filter is not active
+        $(".os-specific-urls").empty().hide();
+        const $regularContainer = $(".regular-urls").empty().show();
+        // Add initial URL fields
+        addUrlField($regularContainer);
+        addUrlField($regularContainer);
+        // Wait for DOM update
+        setTimeout(() => calcDestinationIdx(), 0);
+      }
+
+    });
+    // Delete field handler (works for both types)
+    $(document).on("click", ".delete-btn", function () {
+      if ($(this).closest(".url-pair, .os-url-pair").siblings().length > 0) {
+        $(this).closest(".url-pair, .os-url-pair").remove();
+        calcOsDestinationIdx();
+      }
+    });
+
+    const addFields = function () {
+      // Check which mode is active
+      const isOSFilterMode = $(`#os-filter-${target}-input`).is(":checked");
+      const container = isOSFilterMode ? osUrlsContainer : regularUrlsContainer;
+      const template = isOSFilterMode ? html2 : html;
+      const maxFields = 100; // Maximum fields allowed
+
+      if ($(".destination-input, .os-destination-input").length < maxFields) {
+        errorMsg.fadeOut();
+
+        // Append the appropriate template
+        $(container).append(template);
+
+        // Special handling for each mode
+        if (isOSFilterMode) {
+          calcOsDestinationIdx();
+          if ($(".os-url-pair").length > 1) {
+            // Focus the new URL input
+            $(".os-url-pair").last().find(".os-destination-input").focus();
+          }
+        } else {
+          // Regular field added
+          if (autoManCheckBox.checked === true) {
+            calcperc();
+          }
+          inputFocus();
+          calcDestinationIdx();
+        }
+      } else {
+        errorMsg.html(`Can't have more than ${maxFields} fields!`).fadeIn();
       }
     };
     const deleteField = function (targetElement) {
@@ -90,6 +198,7 @@ $(document).ready(function () {
       }
       errorMsg.fadeOut();
       calcDestinationIdx();
+      calcOsDestinationIdx();
     };
     const calcDestinationIdx = function () {
       const destIdx = $(`.${target} .destination-num`);
@@ -98,7 +207,13 @@ $(document).ready(function () {
         $(item).attr("value", index + 1);
       });
     };
+    const calcOsDestinationIdx = function () {
+      const destIdx = $(`.${target} .destination-num-os`);
 
+      $(destIdx).each((index, item) => {
+        $(item).attr("value", index + 1);
+      });
+    };
     // initial percentage distribution:
     const calcperc = function () {
       $(`.${target} .percent-input`).val(
@@ -215,27 +330,28 @@ $(document).ready(function () {
       const span1 = $(`.perc-click-span-${target}`);
       const span2 = $(`.perc-click-span-${target}-second`);
       const inps = $(`.${target} input[type='number']`);
-
-      inps.each(function (index, item) {
-        if (percClickCheckBox.checked === true) {
-          $(span1).text("Percentage");
-          $(span2).text("Clicks");
-          $(item).attr({ name: "clicks[]", placeholder: "clicks.." });
-          $(".default-page-div").slideDown();
-          $(".equal-dist-button-div").slideUp();
-          $("#equal-dist-create-input")
-            .prop("checked", false)
-            .trigger("change");
-          $('.default-page-div input[type="url"]').attr("disabled", false);
-        } else {
-          $(span1).text("Clicks");
-          $(span2).text("Percent (%)");
-          $(item).attr({ name: "perc[]", placeholder: "%" });
-          $(".default-page-div").slideUp();
-          $(".equal-dist-button-div").slideDown();
-          $('.default-page-div input[type="url"]').attr("disabled", true);
-        }
-      });
+        inps.each(function (index, item) {
+          if (percClickCheckBox.checked === true) {
+            $(span1).text("Percentage");
+            $(span2).text("Clicks");
+            $(item).attr({ name: "clicks[]", placeholder: "clicks.." });
+            $(".default-page-div").slideDown();
+            $(".equal-dist-button-div").slideUp();
+            $(`#equal-dist-${target}-input`)
+              .prop("checked", false)
+              .trigger("change");
+            $('.default-page-div input[type="url"]').attr("disabled", false);
+          } else {
+            if (osFilterCheckBox.checked === false) {
+              $(".equal-dist-button-div").slideDown();
+            }
+            $(span1).text("Clicks");
+            $(span2).text("Percent (%)");
+            $(item).attr({ name: "perc[]", placeholder: "%" });
+            $(".default-page-div").slideUp();
+            $('.default-page-div input[type="url"]').attr("disabled", true);
+          }
+        });
     };
 
     const resetForm = function (e) {
@@ -260,7 +376,33 @@ $(document).ready(function () {
       .on("click", ".delete-btn", function () {
         deleteField(this);
       });
+    // Add unique os validation before form submission
+    $(`form.${target}`).on("submit", function (e) {
+      if ($(`#os-filter-${target}-input`).is(":checked")) {
+        const osValues = [];
+        let hasDuplicates = false;
 
+        $(".os-select").each(function () {
+          const os = $(this).val();
+          if (osValues.includes(os)) {
+            hasDuplicates = true;
+            $(this).addClass("is-invalid");
+          } else {
+            osValues.push(os);
+            $(this).removeClass("is-invalid");
+          }
+        });
+
+        if (hasDuplicates) {
+          e.preventDefault();
+          $(".error-message")
+            .html("Each OS can only be selected once!")
+            .fadeIn();
+          return false;
+        }
+      }
+      return true;
+    });
     const inputFocus = function () {
       $(`.${target} .percent-input`).focus(function () {
         if (percClickCheckBox.checked === true) {
@@ -285,6 +427,7 @@ $(document).ready(function () {
 
     if (target === "editForm") {
       calcDestinationIdx();
+      calcOsDestinationIdx();
     }
   };
 

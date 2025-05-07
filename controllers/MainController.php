@@ -69,18 +69,38 @@ class MainController
                     'defaultUrl' => isset($_POST['defaultUrl']) && !empty(trim($_POST['defaultUrl'])) ? trim($_POST['defaultUrl']) : null,
                     'isClick' => isset($_POST['isClickCheckbox']) ?? 0,
                     'isEqualDistribution' => isset($_POST['is_equal_distribution']) ?? 0,
+                    'osFilterEnabled' => isset($_POST['os_filter_enabled']) ? 1 : 0,
                     'full' => []
                 ];
 
-                // Process destinations
-                foreach ($_POST['url'] as $index => $url) {
-                    if (!empty(trim($url))) {
-                        $destination = [
-                            'url' => trim($url),
-                            'perc' => $data['isClick'] ? null : (isset($_POST['perc'][$index]) ? ($_POST['perc'][$index]) : null),
-                            'clicks' => $data['isClick'] ? ($_POST['clicks'][$index] ?? 0) : null
-                        ];
-                        $data['full'][] = $destination;
+                // Process destinations based on mode
+                if ($data['osFilterEnabled']) {
+                    // Handle OS-specific URLs
+                    if (!empty($_POST['os']) && !empty($_POST['os_url'])) {
+                        foreach ($_POST['os'] as $index => $os) {
+                            if (!empty(trim($_POST['os_url'][$index]))) {
+                                $data['full'][] = [
+                                    'os' => $os,
+                                    'url' => trim($_POST['os_url'][$index]),
+                                    'perc' => null,
+                                    'clicks' => null
+                                ];
+                            }
+                        }
+                    }
+                } else {
+                    // Handle regular URLs (percentage or click mode)
+                    if (!empty($_POST['url'])) {
+                        foreach ($_POST['url'] as $index => $url) {
+                            if (!empty(trim($url))) {
+                                $data['full'][] = [
+                                    'url' => trim($url),
+                                    'perc' => $data['isClick'] ? null : ($_POST['perc'][$index] ?? null),
+                                    'clicks' => $data['isClick'] ? ($_POST['clicks'][$index] ?? 0) : null,
+                                    'os' => null
+                                ];
+                            }
+                        }
                     }
                 }
 
@@ -130,10 +150,10 @@ class MainController
         if (!is_authenticated()) {
             redirect('/login');
         }
-
+    
         $id = $vars['id'] ?? '';
         $link = new Link($this->db);
-
+    
         try {
             // Handle POST/PUT request (update)
             if ($_SERVER['REQUEST_METHOD'] === 'POST' || ($_SERVER['REQUEST_METHOD'] === 'PUT' && isset($_POST['_method']))) {
@@ -141,25 +161,39 @@ class MainController
                     'name' => $_POST['name'] ?? '',
                     'defaultUrl' => $_POST['defaultUrl'] ?? '',
                     'isClick' => isset($_POST['isClickCheckbox']),
+                    'isEqualDistribution' => isset($_POST['is_equal_distribution']),
+                    'osFilterEnabled' => isset($_POST['os_filter_enabled']),
                     'full' => []
                 ];
-
-                foreach ($_POST['url'] as $index => $url) {
-                    $entry = [
-                        'url' => $url
-                    ];
-
-                    if ($data['isClick']) {
-                        $entry['perc'] = null;
-                        $entry['clicks'] = $_POST['clicks'][$index] ?? 0;
-                    } else {
-                        $entry['perc'] = isset($_POST['perc'][$index]) ? $_POST['perc'][$index] : null;
-                        $entry['clicks'] = null;
+    
+                // Process destinations based on mode
+                if ($data['osFilterEnabled']) {
+                    foreach ($_POST['os'] as $index => $os) {
+                        if (!empty(trim($_POST['os_url'][$index]))) {
+                            $data['full'][] = [
+                                'os' => $os,
+                                'url' => trim($_POST['os_url'][$index])
+                            ];
+                        }
                     }
-
-                    $data['full'][] = $entry;
+                } else {
+                    foreach ($_POST['url'] as $index => $url) {
+                        if (!empty(trim($url))) {
+                            $entry = [
+                                'url' => trim($url)
+                            ];
+    
+                            if ($data['isClick']) {
+                                $entry['clicks'] = $_POST['clicks'][$index] ?? 0;
+                            } else {
+                                $entry['perc'] = $_POST['perc'][$index] ?? null;
+                            }
+    
+                            $data['full'][] = $entry;
+                        }
+                    }
                 }
-
+    
                 if ($link->update($id, $data)) {
                     flash('success', 'Link updated successfully!');
                     redirect('/dashboard');
@@ -167,22 +201,27 @@ class MainController
                     throw new Exception('Failed to update link');
                 }
             }
-
+    
             // Handle GET request (show edit form)
             $linkData = $link->getByShortCode($id);
-
+    
             if (!$linkData) {
                 throw new Exception('Link not found');
             }
-
+    
             $vars['title'] = "Edit Link - Spinova URL Rotator";
             $vars['link'] = $linkData;
+            $vars['old_input'] = $_SESSION['old_input'] ?? null;
+            unset($_SESSION['old_input']);
+            
             render_view('links/edit', $vars);
+            
         } catch (Exception $e) {
             error_log("Link edit/update error: " . $e->getMessage());
-
+    
             if ($_SERVER['REQUEST_METHOD'] === 'POST' || ($_SERVER['REQUEST_METHOD'] === 'PUT' && isset($_POST['_method']))) {
                 flash('error', 'Failed to update link: ' . $e->getMessage());
+                $_SESSION['old_input'] = $_POST;
                 redirect("/edit/{$id}");
             } else {
                 flash('error', 'Something went wrong, please try again!');
@@ -190,7 +229,6 @@ class MainController
             }
         }
     }
-
     /**
      * Delete link
      */
@@ -242,7 +280,7 @@ class MainController
                 throw new Exception("This link has been archived and is no longer active");
             }
 
-            $url = $link->handleVisit($linkData['id']);
+            $url = $link->handleVisit($linkData);
 
             if (empty($url)) {
                 throw new Exception("No valid URL to redirect to");

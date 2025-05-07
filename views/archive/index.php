@@ -30,6 +30,7 @@
                                     <th scope="col">VISITS</th>
                                     <th scope="col">PERCENTAGE</th>
                                     <th scope="col">CLICKS</th>
+                                    <th scope="col">OS</th>
                                 </tr>
                             </thead>
 
