@@ -21,19 +21,19 @@ $(document).ready(function () {
     const osFilterCheckBox = document.querySelector(
       `.${target} .os-filter-button-div input[type="checkbox"]`
     );
-    $("#auto-man-create-input").change(function () {
-      if ($("#equal-dist-create-input").is(":checked")) {
+    $(`#auto-man-${target}-input`).change(function () {
+      if ($(`#equal-dist-${target}-input`).is(":checked")) {
         $(this).prop("checked", true);
-        $(".auto-man-span-createForm").text("Auto");
+        $(`.auto-man-span-${target}`).text("Auto");
         return;
       }
     });
-    $("#equal-dist-create-input").change(function () {
+    $(`#equal-dist-${target}-input`).change(function () {
       const isEqual = $(this).is(":checked");
       if (isEqual) {
         calcperc();
         autoManCheckBox.checked = true;
-        $(".auto-man-span-createForm").text("Auto");
+        $(`.auto-man-span-${target}`).text("Auto");
       }
       $(".percent-input").each(function () {
         $(this).prop("disabled", isEqual);
@@ -102,23 +102,34 @@ $(document).ready(function () {
 
     // add flields:
     // OS Filter toggle handler
-    $("#os-filter-create-input").change(function () {
+    $(`#os-filter-${target}-input`).change(function () {
+      console.log("OS Filter toggled");
       const isOSFilter = $(this).is(":checked");
       // Toggle between regular and OS-specific URLs
       $(".regular-urls").toggle(!isOSFilter);
       $(".os-specific-urls").toggle(isOSFilter);
 
       if (isOSFilter) {
+        $(`#equal-dist-${target}-input, #auto-man-${target}-input, #perc-click-${target}-input`).prop(
+          "checked",
+          false
+        );
+        $(".equal-dist-button-div, .auto-man-button-div, .perc-click-button-div").slideUp();
+        $(`.perc-click-span-${target}-second`).text("Operating System");
         $(".regular-urls").empty().hide();
 
         const $osContainer = $(".os-specific-urls").empty().show();
-
+        $(".default-page-div").slideUp();
         // Add initial OS URL fields
         addOSUrlField($osContainer);
         addOSUrlField($osContainer);
         // Wait for DOM update
         setTimeout(() => calcOsDestinationIdx(), 0);
+        setTimeout(() => percClickChangeSpan(), 0);
       } else {
+        
+        $(".equal-dist-button-div, .auto-man-button-div, .perc-click-button-div").slideDown();
+        $(`.perc-click-span-${target}-second`).text("Percent (%)");
         // Remove OS URL fields if OS filter is not active
         $(".os-specific-urls").empty().hide();
         const $regularContainer = $(".regular-urls").empty().show();
@@ -129,16 +140,6 @@ $(document).ready(function () {
         setTimeout(() => calcDestinationIdx(), 0);
       }
 
-      // Disable other distribution modes when OS filter is active
-      if (isOSFilter) {
-        $("#equal-dist-create-input, #auto-man-create-input").prop(
-          "checked",
-          false
-        );
-        $(".equal-dist-button-div, .auto-man-button-div").slideUp();
-      } else {
-        $(".equal-dist-button-div, .auto-man-button-div").slideDown();
-      }
     });
     // Delete field handler (works for both types)
     $(document).on("click", ".delete-btn", function () {
@@ -150,7 +151,7 @@ $(document).ready(function () {
 
     const addFields = function () {
       // Check which mode is active
-      const isOSFilterMode = $("#os-filter-create-input").is(":checked");
+      const isOSFilterMode = $(`#os-filter-${target}-input`).is(":checked");
       const container = isOSFilterMode ? osUrlsContainer : regularUrlsContainer;
       const template = isOSFilterMode ? html2 : html;
       const maxFields = 100; // Maximum fields allowed
@@ -329,11 +330,6 @@ $(document).ready(function () {
       const span1 = $(`.perc-click-span-${target}`);
       const span2 = $(`.perc-click-span-${target}-second`);
       const inps = $(`.${target} input[type='number']`);
-      if (osFilterCheckBox.checked === true) {
-        $(span2).text("Operating System");
-        $(".perc-click-button-div").slideUp();
-      } else {
-        $(".perc-click-button-div").slideDown();
         inps.each(function (index, item) {
           if (percClickCheckBox.checked === true) {
             $(span1).text("Percentage");
@@ -341,7 +337,7 @@ $(document).ready(function () {
             $(item).attr({ name: "clicks[]", placeholder: "clicks.." });
             $(".default-page-div").slideDown();
             $(".equal-dist-button-div").slideUp();
-            $("#equal-dist-create-input")
+            $(`#equal-dist-${target}-input`)
               .prop("checked", false)
               .trigger("change");
             $('.default-page-div input[type="url"]').attr("disabled", false);
@@ -356,7 +352,6 @@ $(document).ready(function () {
             $('.default-page-div input[type="url"]').attr("disabled", true);
           }
         });
-      }
     };
 
     const resetForm = function (e) {
@@ -375,7 +370,6 @@ $(document).ready(function () {
     $(form)
       .on("click", autoManCheckBox, autoManChangeSpan)
       .on("click", percClickCheckBox, percClickChangeSpan)
-      .on("click", osFilterCheckBox, percClickChangeSpan)
       .on("click", ".addFieldBtn", addFields)
       .on("click", ".reset-btn", resetForm)
       .on("blur", ".percent-input", recalcPercentages)
@@ -383,8 +377,8 @@ $(document).ready(function () {
         deleteField(this);
       });
     // Add unique os validation before form submission
-    $("form.createForm").on("submit", function (e) {
-      if ($("#os-filter-create-input").is(":checked")) {
+    $(`form.${target}`).on("submit", function (e) {
+      if ($(`#os-filter-${target}-input`).is(":checked")) {
         const osValues = [];
         let hasDuplicates = false;
 

@@ -242,8 +242,8 @@ main table tr td:nth-child(7) {
 }
 
 main .table tr td:first-child {
-    width: 250px !important;
-    min-width: 250px !important;
+    width: 279px !important;
+    min-width: 279px !important;
     word-break: break-all;
 }
 

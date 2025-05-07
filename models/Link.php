@@ -6,6 +6,7 @@ class Link
     private $conn;
     private $table = 'links';
     private $destinations_table = 'link_destinations';
+    private $os_destinations_table = 'link_os_destinations';
     public $id;
     public $name;
     public $is_click;
@@ -138,14 +139,20 @@ class Link
         if (!$row) {
             return false;
         }
-        // Get destinations using the link ID
-        $destinations = $this->getDestinations($row['id']);
+
+        // Get destinations based on link type
+        if ($row['os_filter_enabled']) {
+            $destinations = $this->getOSDestinations($row['id']);
+        } else {
+            $destinations = $this->getDestinations($row['id']);
+        }
 
         return [
             'id' => $row['id'],
             'name' => $row['name'],
             'is_click' => (bool)$row['is_click'],
             'is_equal_distribution' => (bool)$row['is_equal_distribution'],
+            'os_filter_enabled' => (bool)$row['os_filter_enabled'],
             'default_destination' => [
                 'url' => $row['default_destination_url'],
                 'visits' => $row['default_destination_visits']
@@ -155,6 +162,30 @@ class Link
             'isArchive' => (bool)$row['isArchive'],
             'full' => $destinations
         ];
+    }
+
+    private function getOSDestinations($linkId)
+    {
+        $query = 'SELECT * FROM link_os_destinations 
+              WHERE link_id = :link_id ORDER BY os';
+
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':link_id', $linkId);
+        $stmt->execute();
+
+        $destinations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $formatted = [];
+        foreach ($destinations as $dest) {
+            $formatted[] = [
+                'id' => $dest['id'],
+                'os' => $dest['os'],
+                'url' => $dest['url'],
+                'visits' => $dest['visits']
+            ];
+        }
+
+        return $formatted;
     }
     public function toArray()
     {
@@ -190,6 +221,7 @@ class Link
         $formatted = [];
         foreach ($destinations as $dest) {
             $formatted[] = [
+                'id' => $dest['id'],
                 'url' => $dest['url'],
                 'perc' => isset($dest['percentage']) ? (float)$dest['percentage'] : null,
                 'clicks' => isset($dest['clicks']) ? (int)$dest['clicks'] : null
@@ -201,29 +233,40 @@ class Link
     }
 
     // Handle link visit and return destination URL
-    public function handleVisit($linkId)
+    public function handleVisit($linkData)
     {
         // Set the link ID
-        $this->id = $linkId;
+        $this->id = $linkData['id'];
 
         // 1. Update total visits count
         $this->updateTotalVisits();
 
-        // 2. Get destinations for this link
-        $this->destinations = $this->getDestinations($linkId);
 
-        // 3. Check link modes
-        $this->is_click = $this->isClickMode($linkId);
-        $this->is_equal_distribution = $this->isEqualDistributionMode($linkId);
+        error_log("brute linkData: " . json_encode($linkData));
+        // 2. Set link properties
+        $this->is_click = $linkData['is_click'];
+        $this->is_equal_distribution = $linkData['is_equal_distribution'];
+        $this->os_filter_enabled = $linkData['os_filter_enabled'];
 
-        // 4. Handle the redirection
-        if ($this->is_click) {
-            return $this->handleClickMode();
-        } elseif ($this->is_equal_distribution) {
-            return $this->handleEqualDistributionMode();
-        } else {
-            return $this->handlePercentageMode();
+        // 3. Get appropriate destinations
+        $this->destinations = $linkData['full'] ?? [];
+
+        // 4. Handle redirection based on mode
+        if ($this->os_filter_enabled) {
+            error_log("OS Filter enabled for link ID: $this->id");
+            return $this->handleOSMode();
         }
+        if ($this->is_click) {
+            error_log("Click mode enabled for link ID: $this->id");
+            return $this->handleClickMode();
+        }
+        if ($this->is_equal_distribution) {
+            error_log("Equal distribution mode enabled for link ID: $this->id");
+            return $this->handleEqualDistributionMode();
+        }
+
+        error_log("Percentage distribution mode enabled for link ID: $this->id");
+        return $this->handlePercentageMode();
     }
     private function isEqualDistributionMode($linkId)
     {
@@ -234,6 +277,16 @@ class Link
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (bool)$result['is_equal_distribution'];
+    }
+    private function isOSFilterEnabled($linkId)
+    {
+        $query = 'SELECT os_filter_enabled FROM links WHERE id = :id LIMIT 1';
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $linkId);
+        $stmt->execute();
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return (bool)$result['os_filter_enabled'];
     }
     // Check if the link is in click mode
     private function isClickMode($linkId)
@@ -368,6 +421,17 @@ class Link
         $stmt->execute([$destinationId]);
     }
 
+    // Update visits for a specific destination
+    private function updateDestinationOSVisits($destinationId)
+    {
+        error_log("updateDestinationOSVisits: " . $destinationId);
+        $query = 'UPDATE ' . $this->os_destinations_table . ' 
+                      SET visits = visits + 1 
+                      WHERE id = ?';
+        $stmt = $this->conn->prepare($query);
+        $stmt->execute([$destinationId]);
+    }
+
     /**
      * Get all active (non-archived) links
      */
@@ -377,7 +441,7 @@ class Link
         $query = 'SELECT * FROM ' . $this->table . ' WHERE isArchive = 0 ORDER BY created_at DESC';
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-    
+
         $links = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $link = new Link();
@@ -392,7 +456,7 @@ class Link
             $link->short = $row['short'];
             $link->created_at = $row['created_at'];
             $link->updated_at = $row['updated_at'];
-    
+
             // Get destinations based on link type
             if ($link->os_filter_enabled) {
                 // Get OS-specific destinations
@@ -400,9 +464,9 @@ class Link
                 $stmtDest = $this->conn->prepare($queryDest);
                 $stmtDest->bindParam(':link_id', $link->id);
                 $stmtDest->execute();
-                
+
                 // Format to match regular destinations structure
-                $link->destinations = array_map(function($dest) {
+                $link->destinations = array_map(function ($dest) {
                     return [
                         'url' => $dest['url'],
                         'visits' => $dest['visits'],
@@ -417,13 +481,13 @@ class Link
                 $stmtDest = $this->conn->prepare($queryDest);
                 $stmtDest->bindParam(':link_id', $link->id);
                 $stmtDest->execute();
-                
+
                 $link->destinations = $stmtDest->fetchAll(PDO::FETCH_ASSOC);
             }
-    
+
             $links[] = $link;
         }
-    
+
         return $links;
     }
 
@@ -434,55 +498,76 @@ class Link
     {
         $this->conn->beginTransaction();
         try {
-            // Update main link info
+            // 1. Update main link info
             $query = 'UPDATE ' . $this->table . ' 
                   SET 
                     name = :name,
                     is_click = :is_click,
-                    default_destination_url = :default_url,' .
-                ($data['isClick'] ? '' : ' default_destination_visits = 0,') . '
+                    is_equal_distribution = :is_equal_distribution,
+                    os_filter_enabled = :os_filter_enabled,
+                    default_destination_url = :default_url,
                     updated_at = NOW()
                   WHERE short = :short';
 
             $stmt = $this->conn->prepare($query);
             $stmt->bindParam(':name', $data['name']);
             $stmt->bindParam(':is_click', $data['isClick']);
+            $stmt->bindParam(':is_equal_distribution', $data['isEqualDistribution']);
+            $stmt->bindParam(':os_filter_enabled', $data['osFilterEnabled']);
+
             if (empty($data['defaultUrl'])) {
                 $stmt->bindValue(':default_url', null, PDO::PARAM_NULL);
             } else {
                 $stmt->bindParam(':default_url', $data['defaultUrl']);
             }
+
             $stmt->bindParam(':short', $shortCode);
 
             if (!$stmt->execute()) {
                 return false;
             }
-            // Get the link by short code
+
+            // 2. Get link ID
             $linkId = $this->getIdByShortCode($shortCode);
             if (!$linkId) {
                 throw new Exception('Link not found');
             }
-            // Delete existing destinations
-            $this->conn->prepare('DELETE FROM ' . $this->destinations_table . ' WHERE link_id = ?')
+
+            // 3. Delete existing destinations
+            $table = $data['osFilterEnabled'] ? 'link_os_destinations' : $this->destinations_table;
+            $this->conn->prepare("DELETE FROM $table WHERE link_id = ?")
                 ->execute([$linkId]);
-            // Get link ID
-            $this->getByShortCode($shortCode);
 
+            // 4. Add new destinations
+            if ($data['osFilterEnabled']) {
+                // Handle OS destinations
+                foreach ($data['full'] as $destination) {
+                    $query = 'INSERT INTO link_os_destinations 
+                         (link_id, os, url, visits) 
+                         VALUES (:link_id, :os, :url, 0)';
 
-            // Add new destinations
-            $this->destinations = [];
-            foreach ($data['full'] as $destination) {
-                $query = 'INSERT INTO ' . $this->destinations_table . ' 
-                     (link_id, url, percentage, clicks) 
-                     VALUES (:link_id, :url, :percentage, :clicks)';
+                    $stmt = $this->conn->prepare($query);
+                    $stmt->bindParam(':link_id', $linkId);
+                    $stmt->bindParam(':os', $destination['os']);
+                    $stmt->bindParam(':url', $destination['url']);
+                    $stmt->execute();
+                }
+            } else {
+                // Handle regular destinations
+                foreach ($data['full'] as $destination) {
+                    $query = 'INSERT INTO ' . $this->destinations_table . ' 
+                         (link_id, url, percentage, clicks) 
+                         VALUES (:link_id, :url, :percentage, :clicks)';
 
-                $stmt = $this->conn->prepare($query);
-                $stmt->bindParam(':link_id', $linkId);
-                $stmt->bindParam(':url', $destination['url']);
-                $stmt->bindParam(':percentage', $destination['perc']);
-                $stmt->bindParam(':clicks', $destination['clicks']);
-                $stmt->execute();
+                    $stmt = $this->conn->prepare($query);
+                    $stmt->bindParam(':link_id', $linkId);
+                    $stmt->bindParam(':url', $destination['url']);
+                    $stmt->bindParam(':percentage', $destination['perc']);
+                    $stmt->bindParam(':clicks', $destination['clicks']);
+                    $stmt->execute();
+                }
             }
+
             $this->conn->commit();
             return true;
         } catch (Exception $e) {
@@ -648,7 +733,7 @@ class Link
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
             $links = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
             // Load destinations for each link
             foreach ($links as &$link) {
                 if ($link['os_filter_enabled']) {
@@ -661,7 +746,7 @@ class Link
                     $stmtDest->bindParam(':link_id', $link['id']);
                     $stmtDest->execute();
                     $link['destinations'] = $stmtDest->fetchAll(PDO::FETCH_ASSOC);
-                    $link['full'] = array_map(function($dest) {
+                    $link['full'] = array_map(function ($dest) {
                         return [
                             'url' => $dest['destination_url'],
                             'visits' => $dest['destination_visits'],
@@ -675,14 +760,14 @@ class Link
                     $link['destinations'] = $this->getLinkDestinations($link['id']);
                     $link['full'] = $link['destinations']; // For template compatibility
                 }
-    
+
                 // Add default destination info for consistency
                 $link['defaultDestination'] = [
                     'url' => $link['default_destination_url'],
                     'visits' => $link['default_destination_visits']
                 ];
             }
-    
+
             return $links;
         } catch (Exception $e) {
             error_log('Archive Error: ' . $e->getMessage());
@@ -743,5 +828,55 @@ class Link
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id);
         return $stmt->execute();
+    }
+
+    /**
+     * Handle OS mode redirection
+     * 
+     * This function checks the user's OS and redirects to the appropriate destination URL.
+     * 
+     * @return string The URL to redirect to
+     */
+    private function handleOSMode()
+    {
+        $userOS = $this->detectOS();
+        error_log("Detected OS: " . $userOS); // Log detected OS for debugging
+        // Check for matching OS in destinations
+        foreach ($this->destinations as $destination) {
+            if (strtolower($destination['os']) === $userOS) {
+                $this->updateDestinationOSVisits($destination['id']);
+                return $destination['url'];
+            }
+        }
+
+        // Fallback to default URL
+        $this->updateDefaultUrlVisits();
+        return $this->getDefaultUrl();
+    }
+
+    /**
+     * Detect the operating system from the user agent string
+     * 
+     * @return string The detected operating system
+     */
+    private function detectOS()
+    {
+        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+
+        $osMap = [
+            '/iphone|ipad|ipod/i' => 'ios',
+            '/android.*mobile|mobile.*android/i' => 'android',
+            '/windows nt/i' => 'windows',
+            '/macintosh|mac os x/i' => 'macos',
+            '/linux/i' => 'linux',
+        ];
+
+        foreach ($osMap as $regex => $os) {
+            if (preg_match($regex, $userAgent)) {
+                return $os;
+            }
+        }
+
+        return 'other';
     }
 }

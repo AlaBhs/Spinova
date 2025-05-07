@@ -149,6 +149,7 @@ function tbodyTemplate($links, $mode = 'dashboard')
             '<img src="/images/os/'.strtoupper($el['os']).'.png" alt="'.ucfirst($el['os']).'" class="os-icon">
              <span class="os-name">'.strtoupper(substr($el['os'], 0, 3)).'</span>' : 
             '-';
+            
             $consecutiveTR .= '
                 <tr class="destination-row">
                     <td>&nbsp;</td>
